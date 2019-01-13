@@ -1,0 +1,684 @@
+
+This file contains Books_Periodicals_1.5.h code. In Books_Periodicals_1.5.h, we have these functions:
+1.name: insert
+  function: let user to import a kind of book or periodical, and then insert it into our memory
+2.name: create
+  function: repeate call (insert) to create a linked list in memory
+3.name: export
+  function: open a txt file(Book.txt / Periodical.txt) in D set, and then store these data into memory
+4.name: store
+  function: store memory's data into txt file(Book.txt / Periodical.txt) in D set.
+5.name: destroy_L
+  function: delete a record in memory's linked list logically. It means we can recover it later.
+6.name: destroy_P
+  function: delete a record in memory's linked list phisically. We can't recover it.
+  
+Follow is Books_Periodicals_1.5.h.
+
+
+
+#pragma once
+
+#include <string>;
+#include <fstream>;
+#include <iostream>;
+#include <iomanip>;
+
+using namespace std;
+
+class Basic {
+protected:
+	int number = 0;//编号
+	string name="$Null$";//名称
+	int sort_num = -1;//分类号
+	int lend_qt = -1;//借出量
+	int inventory_qt = -1;//库存量
+	string pub_time = "$Null$";//出版时间
+	string pub_house = "$Null$";//出版社
+	double price = -1;//价格
+	bool hide = true;//实现逻辑隐藏判断标志,false代表被逻辑删除
+};
+
+class Book : Basic{
+public:
+	Book* next;
+	Book* prev;
+	friend class BookList;
+private:
+	string ISBN = "$Null$";
+	string author = "$Null$";//作者
+	int page_num = -1;//页数
+	int word_num = -1;//字数
+	double price_per_th = -1;//千字价格
+};
+
+class Periodical : Basic {
+public:
+	Periodical* next;
+	Periodical* prev;
+	friend class PeriodicalList;
+private:
+	string ISSN = "$Null$";
+	string retrieve = "$Null$";//检索（EI、SCI、CSCD、SSCI、CSSCI、A&HCI）
+	string academic_area = "$Null$";//学科领域
+	int impact_factor = -1;//影响因子
+	int publication_period = -1;//出版周期
+	int papers_per_period = -1;//每期论文数
+	double price_per_paper = -1;//平均单篇论文价格
+};
+
+class BookList {
+public:
+	void Create();//创建Book类链表
+	void Insert();//插入数据
+	void Search();//搜索记录
+	void Show();//显示记录
+	void Store();//储存文件
+	void Export();//从文件载入链表
+	void Change();//修改数据
+	void Destroy();//删除数据，分逻辑删除和物理删除（调用函数）
+	void Destroy_L(int n);//逻辑删除函数（被调用函数）
+	void Destroy_P(int n);//物理删除函数（被调用函数）
+	void Recover();//恢复逻辑删除结点
+	void Statistics();//统计各数据
+	void Price();//计算每千字价格
+private:
+	Book *head;
+	Book *rear;
+};
+
+class PeriodicalList {
+public:
+	void Create();//创建Periodical类链表
+	void Insert();//插入数据
+	void Search();//搜索记录
+	void Show();//显示记录
+	void Store();//储存文件
+	void Export();//从文件载入链表
+	void Change();//修改数据
+	void Destroy();//删除数据，分逻辑删除和物理删除（调用函数）
+	void Destroy_L(int n);//逻辑删除函数（被调用函数）
+	void Destroy_P(int n);//物理删除函数（被调用函数）
+	void Recover();//恢复逻辑删除结点
+	void Statistics();//统计各数据
+	void Price();//计算平均单篇价格
+private:
+	Periodical *head;
+	Periodical *rear;
+};
+
+
+
+void BookList::Export()
+{
+	this->head = this->rear = new Book;
+	this->head->prev = nullptr;
+	this->head->next = nullptr;
+
+
+	ifstream ifile;
+
+	ifile.open("D://Book.txt");
+
+	string str;
+	while (ifile >> str)
+	{
+		Book * New_Book = new Book;
+		New_Book->number = stoi(str);
+		ifile >> str;
+		New_Book->name = str;
+		ifile >> str;
+		New_Book->sort_num = stoi(str);
+		ifile >> str;
+		New_Book->lend_qt = stoi(str);
+		ifile >> str;
+		New_Book->inventory_qt = stoi(str);
+		ifile >> str;
+		New_Book->pub_time = str;
+		ifile >> str;
+		New_Book->pub_house = str;
+		ifile >> str;
+		New_Book->price = stod(str);
+		ifile >> boolalpha >> New_Book->hide;//可能有问题
+		ifile >> str;
+		New_Book->ISBN = str;
+		ifile >> str;
+		New_Book->author = str;
+		ifile >> str;
+		New_Book->page_num = stoi(str);
+		ifile >> str;
+		New_Book->word_num = stoi(str);
+		ifile >> str;
+		New_Book->price_per_th = stoi(str);
+
+		New_Book->next = this->rear->next;
+		New_Book->prev = this->rear;
+		this->rear->next = New_Book;
+		this->rear = New_Book;
+	}
+	ifile.close();
+}
+void BookList::Create()
+{
+	this->head = this->rear = new Book;
+
+	this->head->next = nullptr;
+	this->head->prev = nullptr;
+	cout << "输入？(Y/N)" << endl;
+	char C;
+	while (cin >> C)
+	{
+		if (C == 'Y')
+			this->Insert();
+		else if (C == 'N')
+			break;
+		else cout << "输入错误." << endl;
+
+		cout << "输入？(Y/N)" << endl;
+	}
+	cout << "输入完成." << endl << endl;
+}
+
+void PeriodicalList::Create()
+{
+	this->head = this->rear = new Periodical;
+
+	this->head->next = nullptr;
+	this->head->prev = nullptr;
+	cout << "输入？(Y/N)" << endl;
+	char C;
+	while (cin >> C)
+	{
+		if (C == 'Y')
+			this->Insert();
+		else if (C == 'N')
+			break;
+		else cout << "输入错误." << endl;
+
+		cout << "输入？(Y/N)" << endl;
+	}
+	cout << "输入完成." << endl << endl;
+}
+/*Destroy()完成对结点的物理或者逻辑删除*/
+void BookList::Insert(){
+	Book *newBook = new Book;
+	cout << "请按提示输入图书信息" << endl;
+	cout << "编号：";
+	cin >> newBook->number;
+
+	if (newBook->number > (rear->number + 1) || newBook->number <= 0) {
+		cout << "输入错误，编号重置为" << rear->number + 1 << endl;
+		newBook->number = rear->number + 1;
+	}
+
+	cout << "书名：";
+	cin >> newBook->name;
+	cout << "分类号：";
+	cin >> newBook->sort_num;
+
+	newBook->lend_qt = 0;
+
+	cout << "图书总量：";
+	cin >> newBook->inventory_qt;
+	cout << "出版时间：";
+	cin >> newBook->pub_time;
+	cout << "出版社：";
+	cin >> newBook->pub_house;
+	cout << "价格：";
+	cin >> newBook->price;
+
+	cout << "ISBN: ";
+	cin >> newBook->ISBN;
+	cout << "作者：";
+	cin >> newBook->author;
+	cout << "页数：";
+	cin >> newBook->page_num;
+	cout << "字数: ";
+	cin >> newBook->word_num;
+	cout << "每千字价格：";
+	cin >> newBook->price_per_th;
+
+	Book* mask = head;
+	while (mask->next!=nullptr && (mask->number != newBook->number - 1 || mask->hide != true))
+		mask = mask->next;
+
+	if (mask->next != nullptr) {
+		newBook->next = mask->next;
+		newBook->prev = mask;
+		mask->next->prev = newBook;
+		mask->next = newBook;
+	}
+	else {
+		mask->next = newBook;
+		newBook->prev = mask;
+		newBook->next = nullptr;
+	}
+	
+	if (mask == rear)
+		rear = mask->next;
+
+	mask = newBook->next;
+	int count = 1;
+	while (mask != nullptr) {
+		if (mask->hide == true) {
+			mask->number = newBook->number + count;
+			count++;
+		}
+		mask = mask->next;
+	}
+}
+
+void PeriodicalList::Export()
+{
+	this->head = this->rear = new Periodical;
+	this->head->next = this->head->prev = nullptr;
+	ifstream ifile;
+	ifile.open("D://Periodical.txt");
+	string str;
+	while (ifile >> str)
+	{
+		Periodical * New_Periodical = new Periodical;
+		New_Periodical->number = stoi(str);
+		ifile >> str;
+		New_Periodical->name = str;
+		ifile >> str;
+		New_Periodical->sort_num = stoi(str);
+		ifile >> str;
+		New_Periodical->lend_qt = stoi(str);
+		ifile >> str;
+		New_Periodical->inventory_qt = stoi(str);
+		ifile >> str;
+		New_Periodical->pub_time = str;
+		ifile >> str;
+		New_Periodical->pub_house = str;
+		ifile >> str;
+		New_Periodical->price = stod(str);
+		ifile >> boolalpha >> New_Periodical->hide;//可能有问题
+
+
+		ifile >> str;
+		New_Periodical->ISSN = str;
+		ifile >> str;
+		New_Periodical->retrieve = str;
+		ifile >> str;
+		New_Periodical->academic_area = str;
+		ifile >> str;
+		New_Periodical->impact_factor = stoi(str);
+		ifile >> str;
+		New_Periodical->publication_period = stoi(str);
+		ifile >> str;
+		New_Periodical->papers_per_period = stoi(str);
+		ifile >> str;
+		New_Periodical->price_per_paper = stoi(str);
+
+		New_Periodical->next = this->rear->next;
+		New_Periodical->prev = this->rear;
+		this->rear->next = New_Periodical;
+		this->rear = New_Periodical;
+	}
+
+	ifile.close();
+}
+
+void BookList::Store()
+{
+	ofstream ofile;
+	ofile.open("D://Book.txt");
+
+	Book * p = this->head;
+	Book * q = this->rear;
+
+	while (p->next != nullptr)
+	{
+		p = p->next;
+		ofile << p->number << ' ';
+		ofile << p->name << ' ';
+		ofile << p->sort_num << ' ';
+		ofile << p->lend_qt << ' ';
+		ofile << p->inventory_qt << ' ';
+		ofile << p->pub_time << ' ';
+		ofile << p->pub_house << ' ';
+		ofile << p->price << ' ';
+		ofile << p->hide << ' ';
+
+		ofile << p->ISBN << ' ';
+		ofile << p->author << ' ';
+		ofile << p->page_num << ' ';
+		ofile << p->word_num << ' ';
+		ofile << p->price_per_th << ' ';
+
+		ofile << endl;
+	}
+
+	ofile.close();
+}
+
+void PeriodicalList::Store()
+{
+	ofstream ofile;
+	ofile.open("D://Periodical.txt");
+
+	Periodical * p = this->head;
+	Periodical * q = this->rear;
+
+	while (p->next != nullptr)
+	{
+		p = p->next;
+		ofile << p->number << ' ';
+		ofile << p->name << ' ';
+		ofile << p->sort_num << ' ';
+		ofile << p->lend_qt << ' ';
+		ofile << p->inventory_qt << ' ';
+		ofile << p->pub_time << ' ';
+		ofile << p->pub_house << ' ';
+		ofile << p->price << ' ';
+		ofile << p->hide << ' ';
+
+		ofile << p->ISSN << ' ';
+		ofile << p->retrieve << ' ';
+		ofile << p->academic_area << ' ';
+		ofile << p->impact_factor << ' ';
+		ofile << p->publication_period << ' ';
+		ofile << p->papers_per_period << ' ';
+		ofile << p->price_per_paper << ' ';
+
+		ofile << endl;
+	}
+
+	ofile.close();
+}
+
+
+
+
+
+void PeriodicalList::Insert(){
+	Periodical *newPeriodical = new Periodical;
+	cout << "请按提示输入期刊信息" << endl;
+	cout << "编号：";
+	cin >> newPeriodical->number;
+
+	if (newPeriodical->number > (rear->number + 1) || newPeriodical->number <= 0) {
+		cout << "输入错误，编号重置为" << rear->number + 1 << endl;
+		newPeriodical->number = rear->number + 1;
+	}
+
+	cout << "书名：";
+	cin >> newPeriodical->name;
+	cout << "分类号：";
+	cin >> newPeriodical->sort_num;
+	cout << "图书总量：";
+	cin >> newPeriodical->inventory_qt;
+	cout << "出版时间：";
+	cin >> newPeriodical->pub_time;
+	cout << "出版社：";
+	cin >> newPeriodical->pub_house;
+	cout << "价格：";
+	cin >> newPeriodical->price;
+	cout << "检索：";
+	cin >> newPeriodical->retrieve;
+	cout << "学科领域：";
+	cin >> newPeriodical->academic_area;
+	cout << "影响因子：";
+	cin >> newPeriodical->impact_factor;
+	cout << "出版周期：";
+	cin >> newPeriodical->publication_period;
+	cout << "每期论文数：";
+	cin >> newPeriodical->papers_per_period;
+	cout << "平均单篇论文价格：";
+	cin >> newPeriodical->price_per_paper;
+
+	Periodical* mask = head;
+	while (mask->next != nullptr && (mask->number != newPeriodical->number - 1 || mask->hide != true))
+		mask = mask->next;
+
+	if (mask->next != nullptr) {
+		newPeriodical->next = mask->next;
+		newPeriodical->prev = mask;
+		mask->next->prev = newPeriodical;
+		mask->next = newPeriodical;
+	}
+	else {
+		mask->next = newPeriodical;
+		newPeriodical->prev = mask;
+		newPeriodical->next = nullptr;
+	}
+
+	if (mask == rear)
+		rear = mask->next;
+
+	mask = newPeriodical->next;
+	int count = 1;
+	while (mask != nullptr) {
+		if (mask->hide == true) {
+			mask->number = newPeriodical->number + count;
+			count++;
+		}
+		mask = mask->next;
+	}
+}
+
+
+
+/*Destroy()函数完成BookList链表结点的逻辑或者物理删除*/
+void BookList::Destroy() {
+	int n, i;
+	cout << "删除编号：";
+	cin >> n;
+	cout << "1.逻辑删除" << endl << "2.物理删除" << endl;
+	cin >> i;
+	switch (i) {
+	case 1:
+		Destroy_L(n);
+		break;
+	case 2:
+		Destroy_P(n);
+		break;
+	default:
+		cout << "不存在该选择！" << endl;
+		break;
+	}
+}
+void BookList::Destroy_L(int n) {
+	int x = 1;//x是逻辑删除编号
+	Book* p = head;
+	if (n <= rear->number) {
+		for (int i = 0; i < n; i++) {
+			p = p->next;
+			if (p->hide == false) {
+				i--;
+				x++;
+			}
+		}
+		p->hide = false;
+		p->number = x;
+		p = p->next;
+		while (p) {
+			if (p->hide == true)
+				p->number--;
+			else
+				p->number++;
+			p = p->next;
+		}
+		cout << "逻辑删除完成！" << endl;
+	}
+	else
+		cout << "不存在该编号数据！" << endl;
+}
+void BookList::Destroy_P(int n) {
+	Book* p = head;
+	if (n <= rear->number) {
+		for (int i = 0; i < n; i++) {
+			if (p->hide == false)
+				i--;
+			p = p->next;
+		}
+		Book* a = p->prev;
+		Book* b = p->next;
+		if (b) {
+			a->next = b;
+			b->prev = a;
+			while (b) {
+				if (b->hide == true)
+					b->number--;
+				b = b->next;
+			}
+			cout << "物理删除完成！" << endl;
+		}
+		else {
+			a->next = NULL;
+			rear = a;
+		}
+	}
+	else
+		cout << "不存在该编号！" << endl;
+}
+/*Destroy()函数完成PeriodicalList链表结点的逻辑或者物理删除*/
+void PeriodicalList::Destroy() {
+	int n, i;
+	cout << "删除编号：";
+	cin >> n;
+	cout << "1.逻辑删除" << endl << "2.物理删除" << endl;
+	cin >> i;
+	switch (i) {
+	case 1:
+		Destroy_L(n);
+		break;
+	case 2:
+		Destroy_P(n);
+		break;
+	default:
+		cout << "不存在该选择！" << endl;
+		break;
+	}
+}
+void PeriodicalList::Destroy_L(int n) {
+	int x = 1;//x是逻辑删除编号
+	Periodical* p = head;
+	if (n <= rear->number) {
+		for (int i = 0; i < n; i++) {
+			p = p->next;
+			if (p->hide == false) {
+				i--;
+				x++;
+			}
+		}
+		p->hide = false;
+		p->number = x;
+		p = p->next;
+		while (p) {
+			if (p->hide == true)
+				p->number--;
+			else
+				p->number++;
+			p = p->next;
+		}
+		cout << "逻辑删除完成！" << endl;
+	}
+	else
+		cout << "不存在该编号数据！" << endl;
+}
+void PeriodicalList::Destroy_P(int n) {
+	Periodical* p = head;
+	if (n <= rear->number) {
+		for (int i = 0; i < n; i++) {
+			if (p->hide == false)
+				i--;
+			p = p->next;
+		}
+		Periodical* a = p->prev;
+		Periodical* b = p->next;
+		if (b) {
+			a->next = b;
+			b->prev = a;
+			while (b) {
+				if (b->hide == true)
+					b->number--;
+				b = b->next;
+			}
+			cout << "物理删除完成！" << endl;
+		}
+		else {
+			a->next = NULL;
+			rear = a;
+		}
+	}
+	else
+		cout << "不存在该编号！" << endl;
+}
+/*Recover()函数完成BookList链表结点的逻辑恢复*/
+void BookList::Recover() {
+	int n;
+	Book* p = head;
+	cout << "被逻辑删除的结点有：";
+	p = p->next;
+	while (p) {
+		if (p->hide == false)
+			cout << p->number << "   ";
+		p = p->next;
+	}
+	cout << endl << "逻辑恢复结点：";
+	cin >> n;
+	p = head;
+	for (int i = 0; i < n; i++) {
+		p = p->next;
+		if (p->hide == true)
+			i--;
+	}
+	if (p->hide == false) {
+		p->hide = true;
+		Book* q = p->next;
+		while (q->hide == false)
+			q = q->next;
+		p->number = q->number;
+		p = p->next;
+		while (p) {
+			if (p->hide == true)
+				p->number++;
+			else
+				p->number--;
+			p = p->next;
+		}
+		cout << "逻辑恢复结点" << n << "已完成！" << endl;
+	}
+	else
+		cout << "不存在该逻辑删除结点！" << endl;
+}
+/*Recover()函数完成PeriodicalList链表结点的逻辑恢复*/
+void PeriodicalList::Recover() {
+	int n;
+	Periodical* p = head;
+	cout << "被逻辑删除的结点有：";
+	p = p->next;
+	while (p) {
+		if (p->hide == false)
+			cout << p->number << "   ";
+		p = p->next;
+	}
+	cout << endl << "逻辑恢复结点：";
+	cin >> n;
+	p = head;
+	for (int i = 0; i < n; i++) {
+		p = p->next;
+		if (p->hide == true)
+			i--;
+	}
+	if (p->hide == false) {
+		p->hide = true;
+		Periodical* q = p->next;
+		while (q->hide == false)
+			q = q->next;
+		p->number = q->number;
+		p = p->next;
+		while (p) {
+			if (p->hide == true)
+				p->number++;
+			else
+				p->number--;
+			p = p->next;
+		}
+		cout << "逻辑恢复结点" << n << "已完成！" << endl;
+	}
+	else
+		cout << "不存在该逻辑删除结点！" << endl;
+}
